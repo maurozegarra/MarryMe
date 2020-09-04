@@ -12,6 +12,7 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
     private var previousPositionY = 0f
+    private var previousPositionX = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,29 +31,47 @@ class MainActivity : AppCompatActivity() {
         val containerH = container.height
         var buttonWidth: Float = binding.buttonNo.width.toFloat()
         val buttonHeight: Float = binding.buttonNo.height.toFloat()
-        //val posX = binding.buttonNo.x
+        val posX = binding.buttonNo.x
         val posY = binding.buttonNo.y
 
         val spaceDownButton = containerH - (posY + buttonHeight * 2)
         val spaceUpButton = posY - buttonHeight
 
-        val jumpDown = Random().nextBoolean()
+        val jumpUp = Random().nextBoolean()
 
-        val shift = 200f
+        var shift = buttonHeight
+
+        if (jumpUp) {
+            shift = Math.random().toFloat() * spaceDownButton
+        } else {
+            shift = Math.random().toFloat() * -spaceUpButton
+        }
 
         previousPositionY += shift
 
+        val moverVertical = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_Y, previousPositionY)
+        moverVertical.interpolator = AccelerateInterpolator(1f)
+        moverVertical.duration = 100
+        moverVertical.start()
 
-//        moveToY = if (jumpDown) {
-//            Math.random().toFloat() * spaceDownButton
-//        } else {
-//            Math.random().toFloat() * -spaceUpButton
-//        }
+        ////////////////////////////////////////////////////////////////////////////////////////////
 
-        val mover = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_Y, previousPositionY)
-        mover.interpolator = AccelerateInterpolator(1f)
-        mover.start()
+        val spaceRightButton = containerW - (posX + buttonWidth * 2)
+        val spaceLeftButton = posX - buttonWidth
+
+        val jumpRight = Random().nextBoolean()
+
+        val shiftHorizontal = if (jumpRight) {
+            Math.random().toFloat() * spaceRightButton
+        } else {
+            Math.random().toFloat() * -spaceLeftButton
+        }
+
+        previousPositionX += shiftHorizontal
+
+        val moverHorizontal = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, previousPositionX)
+        moverHorizontal.interpolator = AccelerateInterpolator(1f)
+        moverHorizontal.duration = 100
+        moverHorizontal.start()
     }
-
-
 }
