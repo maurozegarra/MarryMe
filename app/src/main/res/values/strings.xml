@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Marry Me</string>
+    <string name="marry_me">¿Quieres Casarte Conmigo?</string>
+    <string name="no">No</string>
+    <string name="yes">Si</string>
+</resources>
