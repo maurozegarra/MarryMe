@@ -49,8 +49,8 @@ class MainActivity : AppCompatActivity() {
     private fun moveVertical(containerH: Int, posY: Float, buttonHeight: Float) {
         val minimumFactor = 2
         val minimumShift = buttonHeight * minimumFactor
-        val spaceAboveButton = posY - buttonHeight
-        val spaceBellowButton = containerH - (posY + buttonHeight * 2)
+        val spaceAboveButton = posY
+        val spaceBellowButton = containerH - (posY + buttonHeight)
 
         val jumpTop = mayJumpTop(spaceAboveButton, spaceBellowButton, minimumShift)
         val buttonsContained =
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
 
         // hasta aquí todas las posibilidades están agotadas, pongo true solo por preferir un salto
         // hacia arriba pero, no debería pasar
-        return true
+        return false
     }
 
     private fun getButtonsContained(
@@ -112,23 +112,74 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun moveHorizontal(containerW: Int, posX: Float, buttonWidth: Float) {
-        val spaceRightButton = containerW - (posX + buttonWidth * 2)
-        val spaceLeftButton = posX - buttonWidth
+        val minimumFactor = 1f
+        val minimumShift = buttonWidth * minimumFactor
+        val spaceLeft = posX
+        val spaceRight = containerW - (posX + buttonWidth)
 
-        val jumpRight = Random().nextBoolean()
+        val jumpLeft = mayJumpLeft(spaceLeft, spaceRight, minimumShift)
+        val buttonsContained = getButtonsContainedX(jumpLeft, spaceLeft, spaceRight, buttonWidth)
+        val remainingFactor = buttonsContained - minimumFactor
+        val shift = getShiftX(minimumShift, remainingFactor, buttonWidth)
 
-        val shiftHorizontal = if (jumpRight) {
-            Math.random().toFloat() * spaceRightButton
-        } else {
-            Math.random().toFloat() * -spaceLeftButton
-        }
+        if (jumpLeft)
+            positionX -= shift
+        else
+            positionX += shift
 
-        positionX += shiftHorizontal
+        /*
+        Log.i(
+            "moveHorizontal",
+            "loggin:" +
+                    "\nminimumShift = $minimumShift" +
+                    "\nshift = $shift" +
+                    "\nspaceLeft = $spaceLeft" +
+                    "\nspaceRight = $spaceRight"
+        )
+        */
 
         val moverHorizontal =
             ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, positionX)
         moverHorizontal.interpolator = AccelerateInterpolator(1f)
         moverHorizontal.duration = 100
         moverHorizontal.start()
+    }
+
+    private fun mayJumpLeft(
+        spaceLeft: Float,
+        spaceRight: Float,
+        minimumShift: Float
+    ): Boolean {
+        val couldJumpLeft = spaceLeft >= minimumShift
+        val couldJumpRight = spaceRight >= minimumShift
+        val spaceAreEquals = spaceLeft == spaceRight
+
+        if (couldJumpLeft && couldJumpRight) {
+            return if (spaceAreEquals)
+                true
+            else
+                Random().nextBoolean()
+        }
+
+        if (couldJumpLeft) return true
+        if (couldJumpRight) return false
+
+        return false
+    }
+
+    private fun getButtonsContainedX(
+        jumpPreferred: Boolean,
+        spaceBefore: Float,
+        spaceAfter: Float,
+        buttonSize: Float
+    ): Int {
+        return if (jumpPreferred)
+            spaceBefore.toInt() / buttonSize.toInt()
+        else
+            spaceAfter.toInt() / buttonSize.toInt()
+    }
+
+    private fun getShiftX(minimumShift: Float, remainingFactor: Float, buttonSize: Float): Float {
+        return minimumShift + Math.random().toFloat() * (remainingFactor * buttonSize)
     }
 }
