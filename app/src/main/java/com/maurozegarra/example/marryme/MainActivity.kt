@@ -6,11 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maurozegarra.example.marryme.databinding.ActivityMainBinding
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
     private var previousPositionY = 0f
     private var previousPositionX = 0f
 
@@ -21,8 +22,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.buttonNo.setOnClickListener { runaway() }
+        binding.buttonYes.setOnClickListener { openDialog() }
 
         supportActionBar?.hide()
+    }
+
+    private fun openDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setMessage(resources.getString(R.string.i_knew_it))
+            .show()
     }
 
     private fun runaway() {
@@ -49,7 +57,8 @@ class MainActivity : AppCompatActivity() {
 
         previousPositionY += shift
 
-        val moverVertical = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_Y, previousPositionY)
+        val moverVertical =
+            ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_Y, previousPositionY)
         moverVertical.interpolator = AccelerateInterpolator(1f)
         moverVertical.duration = 100
         moverVertical.start()
@@ -69,7 +78,8 @@ class MainActivity : AppCompatActivity() {
 
         previousPositionX += shiftHorizontal
 
-        val moverHorizontal = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, previousPositionX)
+        val moverHorizontal =
+            ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, previousPositionX)
         moverHorizontal.interpolator = AccelerateInterpolator(1f)
         moverHorizontal.duration = 100
         moverHorizontal.start()

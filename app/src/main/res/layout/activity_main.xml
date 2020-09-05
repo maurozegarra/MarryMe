@@ -6,22 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/text_question"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="0dp"
+        android:layout_height="140dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="150dp"
+        android:layout_marginEnd="16dp"
         android:text="@string/marry_me"
-        android:textSize="30sp"
-        android:textStyle="bold"
+        android:textAlignment="center"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@+id/frameLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@android:color/darker_gray"
+        android:background="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,22 +35,21 @@
             android:id="@+id/button_no"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginEnd="80dp"
-            android:layout_height="wrap_content"
             android:text="@string/no"
             app:strokeColor="@color/colorPrimary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_yes"
-            android:layout_gravity="center"
-            android:visibility="visible"
             style="@style/Widget.MaterialComponents.Button"
-            android:layout_marginStart="80dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="80dp"
             android:text="@string/yes"
-             />
+            android:visibility="visible" />
 
     </FrameLayout>
 
