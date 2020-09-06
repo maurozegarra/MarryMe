@@ -29,7 +29,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun openDialog() {
         MaterialAlertDialogBuilder(this)
-            .setMessage(resources.getString(R.string.i_knew_it))
+            //.setMessage(resources.getString(R.string.i_knew_it))
+            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                // Respond to positive button press
+            }
+            .setTitle(resources.getString(R.string.i_knew_it))
+            .setIcon(R.drawable.ic_heart)
             .show()
     }
 
