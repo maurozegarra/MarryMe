@@ -1,7 +1,10 @@
 package com.maurozegarra.example.marryme
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
@@ -9,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maurozegarra.example.marryme.databinding.ActivityMainBinding
 import java.util.*
+import kotlin.math.round
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -133,20 +137,37 @@ class MainActivity : AppCompatActivity() {
             positionX += shift
 
         /*
+        // must inside getShiftX
+        if (X and Y overlap) {
+            shift
+        }
+
+        */
+
         Log.i(
             "moveHorizontal",
             "loggin:" +
-                    "\nminimumShift = $minimumShift" +
-                    "\nshift = $shift" +
+                    "\ncurPosX_No = $posX to ${posX + buttonWidth}" +
+                    //"\nwidth_No = ${binding.buttonNo.width}" +
+                    "\ncurPosX_Yes = ${binding.buttonYes.x} to ${binding.buttonYes.x + buttonWidth}" +
+                    "\njump = ${if(jumpLeft) "left" else "right"}" +
                     "\nspaceLeft = $spaceLeft" +
-                    "\nspaceRight = $spaceRight"
+                    "\nspaceRight = $spaceRight"+
+                    "\nshiftX = $shift" +
+                    //"\ncontainerWidth = ${binding.frameLayout.width}" +
+                    "\npositionX = $positionX"
         )
-        */
 
         val moverHorizontal =
             ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, positionX)
         moverHorizontal.interpolator = AccelerateInterpolator(1f)
         moverHorizontal.duration = 100
+        moverHorizontal.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                moverHorizontal.cancel()
+                Log.i("moveHorizontal", "endPosX_No: ${binding.buttonNo.x}")
+            }
+        })
         moverHorizontal.start()
     }
 
@@ -185,6 +206,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getShiftX(minimumShift: Float, remainingFactor: Float, buttonSize: Float): Float {
-        return minimumShift + Math.random().toFloat() * (remainingFactor * buttonSize)
+        val rounded = round(Math.random().toFloat() * (remainingFactor * buttonSize))
+        //Log.i("moveHorizontal", "uglyNumber = $uglyNumber, rounded: ${round(uglyNumber)}")
+        return minimumShift + rounded
     }
 }
