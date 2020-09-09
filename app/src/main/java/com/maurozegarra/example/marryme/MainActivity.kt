@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var positionY = 0f
     private var positionX = 0f
+    private var shiftY = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,12 +66,12 @@ class MainActivity : AppCompatActivity() {
         val buttonsContained =
             getButtonsContained(jumpTop, spaceAboveButton, spaceBellowButton, buttonHeight)
         val remainingFactor = buttonsContained - minimumFactor
-        val shift = getShift(minimumShift, remainingFactor, buttonHeight)
+        shiftY = getShiftY(minimumShift, remainingFactor, buttonHeight)
 
         if (jumpTop)
-            positionY -= shift
+            positionY -= shiftY
         else
-            positionY += shift
+            positionY += shiftY
 
         val moverVertical = ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_Y, positionY)
         moverVertical.interpolator = AccelerateInterpolator(1f)
@@ -116,8 +117,9 @@ class MainActivity : AppCompatActivity() {
 
     // Mínimo debe devolver 3 veces el alto del botón y máximo el número de veces contenido el botón
     // en el espacio disponible
-    private fun getShift(minimumShift: Float, remainingFactor: Int, buttonHeight: Float): Float {
-        return minimumShift + Math.random().toFloat() * (remainingFactor * buttonHeight)
+    private fun getShiftY(minShift: Float, remainingFactor: Int, buttonHeight: Float): Float {
+        val maxShift = round(Math.random().toFloat() * (remainingFactor * buttonHeight))
+        return minShift + maxShift
     }
 
     private fun moveHorizontal(containerW: Int, posX: Float, buttonWidth: Float) {
@@ -129,33 +131,34 @@ class MainActivity : AppCompatActivity() {
         val jumpLeft = mayJumpLeft(spaceLeft, spaceRight, minimumShift)
         val buttonsContained = getButtonsContainedX(jumpLeft, spaceLeft, spaceRight, buttonWidth)
         val remainingFactor = buttonsContained - minimumFactor
-        val shift = getShiftX(minimumShift, remainingFactor, buttonWidth)
+        val shiftX = getShiftX(minimumShift, remainingFactor, buttonWidth)
 
         if (jumpLeft)
-            positionX -= shift
+            positionX -= shiftX
         else
-            positionX += shift
+            positionX += shiftX
 
         /*
         // must inside getShiftX
         if (X and Y overlap) {
             shift
         }
-
         */
 
         Log.i(
             "moveHorizontal",
             "loggin:" +
+                    "\nwidth_No = $buttonWidth" +
+                    "\nheight_No = ${binding.buttonNo.height}" +
                     "\ncurPosX_No = $posX to ${posX + buttonWidth}" +
-                    //"\nwidth_No = ${binding.buttonNo.width}" +
+                    "\ncurPosY_No = ${binding.buttonNo.y} to ${binding.buttonNo.y + binding.buttonNo.height}" +
                     "\ncurPosX_Yes = ${binding.buttonYes.x} to ${binding.buttonYes.x + buttonWidth}" +
-                    "\njump = ${if(jumpLeft) "left" else "right"}" +
+                    "\ncurPosY_Yes = ${binding.buttonYes.y} to ${binding.buttonYes.y + binding.buttonYes.height}" +
+                    "\njump = ${if (jumpLeft) "left" else "right"}" +
                     "\nspaceLeft = $spaceLeft" +
-                    "\nspaceRight = $spaceRight"+
-                    "\nshiftX = $shift" +
-                    //"\ncontainerWidth = ${binding.frameLayout.width}" +
-                    "\npositionX = $positionX"
+                    "\nspaceRight = $spaceRight" +
+                    "\nshiftX = $shiftX" +
+                    "\nshiftY = $shiftY"
         )
 
         val moverHorizontal =
@@ -164,8 +167,8 @@ class MainActivity : AppCompatActivity() {
         moverHorizontal.duration = 100
         moverHorizontal.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
-                moverHorizontal.cancel()
                 Log.i("moveHorizontal", "endPosX_No: ${binding.buttonNo.x}")
+                Log.i("moveHorizontal", "endPosY_No: ${binding.buttonNo.y} to ${binding.buttonNo.y + binding.buttonNo.height}")
             }
         })
         moverHorizontal.start()
@@ -205,9 +208,19 @@ class MainActivity : AppCompatActivity() {
             spaceAfter.toInt() / buttonSize.toInt()
     }
 
-    private fun getShiftX(minimumShift: Float, remainingFactor: Float, buttonSize: Float): Float {
-        val rounded = round(Math.random().toFloat() * (remainingFactor * buttonSize))
-        //Log.i("moveHorizontal", "uglyNumber = $uglyNumber, rounded: ${round(uglyNumber)}")
-        return minimumShift + rounded
+    private fun getShiftX(minShift: Float, remainingFactor: Float, buttonSize: Float): Float {
+        val maxShift = round(Math.random().toFloat() * (remainingFactor * buttonSize))
+
+        val yNo = binding.buttonNo.y
+        val yEndNo = yNo + shiftY
+        val yYes = binding.buttonYes.y
+        val heightYes = binding.buttonYes.height
+
+        val rangeY = yYes .. (yYes + heightYes)
+
+        if (yEndNo in rangeY)
+            Log.e("moveHorizontal", "overlap")
+
+        return minShift + maxShift
     }
 }
