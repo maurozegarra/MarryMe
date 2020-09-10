@@ -26,14 +26,15 @@ class MainActivity : AppCompatActivity() {
     private val minimumFactorY = 1f
 
     // States
-    private var noWidth = 0f
-    private var noHeight = 0f
+    private var widthNo = 0f
+    private var heightNo = 0f
     private var spaceLeft = 0f
     private var spaceRight = 0f
     private var spaceUp = 0f
     private var spaceDown = 0f
     private var jumpLeft = false
     private var jumpUp = false
+    private var hasLogYes = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,14 +50,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun runaway() {
-        noWidth = binding.buttonNo.width.toFloat()
-        noHeight = binding.buttonNo.height.toFloat()
+        widthNo = binding.buttonNo.width.toFloat()
+        heightNo = binding.buttonNo.height.toFloat()
 
+        // moveHorizontal depende de moveVertical.
+        // Para evitar la sobreposicion de "No", primero debo conocer el desplazamiento en Y
         moveHorizontal()
         moveVertical()
     }
 
     private fun moveHorizontal() {
+        logYes()
         spaceLeft = binding.buttonNo.x
         spaceRight = getSpaceRight()
 
@@ -67,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         else
             positionX += shiftX
 
-        logPrevPositionX()
+        //logPrevPositionX()
 
         val moverHorizontal =
             ObjectAnimator.ofFloat(binding.buttonNo, View.TRANSLATION_X, positionX)
@@ -75,7 +79,7 @@ class MainActivity : AppCompatActivity() {
         moverHorizontal.duration = 100
         moverHorizontal.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
-                logFinalPositionX()
+                //logCurrentPositionX()
             }
         })
         moverHorizontal.start()
@@ -84,36 +88,23 @@ class MainActivity : AppCompatActivity() {
     private fun getSpaceRight(): Float {
         val container = binding.buttonNo.parent as ViewGroup
         val containerW = container.width
-        return containerW - (spaceLeft + noWidth)
+        return containerW - (spaceLeft + widthNo)
     }
 
     private fun getShiftX(): Float {
-        /*
-        val yNo = binding.buttonNo.y
-        val yEndNo = yNo + shiftY
-        val yYes = binding.buttonYes.y
-        val heightYes = binding.buttonYes.height
-
-        val rangeY = yYes..(yYes + heightYes)
-
-        if (yEndNo in rangeY)
-            Log.e("moveHorizontal", "overlap")
-        */
         val minShift = getMinShiftX()
         val maxShift = getMaxShiftX()
-
-        // avoid overlap
 
         return minShift + maxShift
     }
 
     private fun getMinShiftX(): Float {
-        return noWidth * minimumFactorX
+        return widthNo * minimumFactorX
     }
 
     private fun getMaxShiftX(): Float {
         val remainingFactor = getRemainingFactorX()
-        return round(Math.random().toFloat() * (remainingFactor * noWidth))
+        return round(Math.random().toFloat() * (remainingFactor * widthNo))
     }
 
     private fun getRemainingFactorX(): Float {
@@ -121,17 +112,17 @@ class MainActivity : AppCompatActivity() {
         return buttonsContained - minimumFactorX
     }
 
-    private fun getButtonsContainedX(): Float {
+    private fun getButtonsContainedX(): Int {
         jumpLeft = getJumpLeft()
 
         return if (jumpLeft)
-            spaceLeft / noWidth
+            (spaceLeft / widthNo).toInt()
         else
-            spaceRight / noWidth
+            (spaceRight / widthNo).toInt()
     }
 
     private fun getJumpLeft(): Boolean {
-        val minimumShift = noWidth * minimumFactorX
+        val minimumShift = widthNo * minimumFactorX
 
         val couldJumpLeft = spaceLeft >= minimumShift
         val couldJumpRight = spaceRight >= minimumShift
@@ -156,6 +147,8 @@ class MainActivity : AppCompatActivity() {
 
         shiftY = getShiftY()
 
+        shiftY = avoidOverlapY(shiftY)
+
         if (jumpUp)
             positionY -= shiftY
         else
@@ -169,7 +162,7 @@ class MainActivity : AppCompatActivity() {
         moverHorizontal.duration = 100
         moverHorizontal.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
-                logFinalPositionY()
+                logCurrentPositionY()
             }
         })
         moverHorizontal.start()
@@ -178,7 +171,7 @@ class MainActivity : AppCompatActivity() {
     private fun getSpaceDown(): Float {
         val container = binding.buttonNo.parent as ViewGroup
         val containerH = container.height
-        return containerH - (spaceUp + noHeight)
+        return containerH - (spaceUp + heightNo)
     }
 
     private fun getShiftY(): Float {
@@ -188,13 +181,47 @@ class MainActivity : AppCompatActivity() {
         return minShift + maxShift
     }
 
+    private fun avoidOverlapY(shiftY: Float): Float {
+        var tmpShiftY = shiftY
+
+        val topNo: Float
+        val bottomNo: Float
+        if (jumpUp) {
+            topNo = spaceUp - tmpShiftY
+            bottomNo = spaceUp + heightNo - tmpShiftY
+        } else {
+            topNo = spaceUp + tmpShiftY
+            bottomNo = spaceUp + heightNo + tmpShiftY
+        }
+
+        val yYes = binding.buttonYes.y
+        val heightYes = binding.buttonYes.height
+        val yRangeYes = yYes..(yYes + heightYes)
+
+        if (topNo in yRangeYes) {
+            Log.e("moveVertical","overlap topNo = $topNo, iniShiftY = $shiftY, heightNo = $heightNo")
+            if (jumpUp)
+                tmpShiftY += 1.5f * heightNo
+            else
+                tmpShiftY += heightNo
+        } else if (bottomNo in yRangeYes) {
+            Log.e("moveVertical","overlap bottomNo = $bottomNo, iniShiftY = $shiftY, heightNo = $heightNo")
+            if (jumpUp)
+                tmpShiftY += heightNo
+            else
+                tmpShiftY += 1.5f * heightNo
+        }
+
+        return tmpShiftY
+    }
+
     private fun getMinShiftY(): Float {
-        return noHeight * minimumFactorY
+        return heightNo * minimumFactorY
     }
 
     private fun getMaxShiftY(): Float {
         val remainingFactorY = getRemainingFactorY()
-        return round(Math.random().toFloat() * (remainingFactorY * noHeight))
+        return round(Math.random().toFloat() * (remainingFactorY * heightNo))
     }
 
     private fun getRemainingFactorY(): Float {
@@ -202,17 +229,17 @@ class MainActivity : AppCompatActivity() {
         return buttonsContainedY - minimumFactorY
     }
 
-    private fun getButtonsContainedY(): Float {
+    private fun getButtonsContainedY(): Int {
         jumpUp = getJumpUp()
 
         return if (jumpUp)
-            spaceUp / noHeight
+            (spaceUp / heightNo).toInt()
         else
-            spaceDown / noHeight
+            (spaceDown / heightNo).toInt()
     }
 
     private fun getJumpUp(): Boolean {
-        val minimumShift = noHeight * minimumFactorY
+        val minimumShift = heightNo * minimumFactorY
 
         val couldJumpUp = spaceUp >= minimumShift
         val couldJumpDown = spaceDown >= minimumShift
@@ -250,10 +277,10 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun logFinalPositionX() {
+    private fun logCurrentPositionX() {
         Log.i(
             "moveHorizontal",
-            "logFinalPositionX:" +
+            "logCurrentPositionX:" +
                     "\ncurrentXNo = ${binding.buttonNo.x} to ${binding.buttonNo.x + binding.buttonNo.width}"
         )
     }
@@ -268,11 +295,23 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun logFinalPositionY() {
+    private fun logCurrentPositionY() {
         Log.i(
             "moveVertical",
-            "logFinalPositionY:" +
+            "logCurrentPositionY:" +
                     "\ncurrentYNo = ${binding.buttonNo.y} to ${binding.buttonNo.y + binding.buttonNo.height}"
         )
+    }
+
+    private fun logYes() {
+        if (!hasLogYes) {
+            Log.e(
+                "logYes",
+                "\nxYes = ${binding.buttonYes.x} to ${binding.buttonYes.x + binding.buttonYes.width}" +
+                        " | yYes = ${binding.buttonYes.y} to ${binding.buttonYes.y + binding.buttonYes.height}"
+            )
+        }
+
+        hasLogYes = true
     }
 }
